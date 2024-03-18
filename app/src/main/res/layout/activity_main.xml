@@ -1,32 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
 
-    <Button
-        android:id="@+id/botonMainJugar"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="163dp"
-        android:layout_marginTop="199dp"
-        android:layout_marginEnd="160dp"
-        android:layout_marginBottom="169dp"
-        android:text="@string/boton_init_play"
-        >
+        android:text="¡Bienvenido MemoryCrafter!"
+        android:textSize="24sp"
+        android:layout_marginBottom="20dp"/>
 
-    </Button>
-
-    <Button
-        android:id="@+id/botonMainSalir"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="165dp"
-        android:layout_marginTop="169dp"
-        android:layout_marginEnd="159dp"
-        android:layout_marginBottom="267dp"
-        android:text="@string/boton_init_quit"
-        >
-    </Button>
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/botonMainJugar"
+            android:layout_width="135dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="20dp"
+            android:text="@string/boton_init_play" />
+
+        <Button
+            android:id="@+id/botonMainSalir"
+            android:layout_width="135dp"
+            android:layout_height="60dp"
+            android:text="@string/boton_init_quit" />
+
+    </LinearLayout>
 
 </LinearLayout>

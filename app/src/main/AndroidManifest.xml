@@ -23,7 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Juego"></activity>
+        <activity android:name=".Juego" />
+        <activity android:name=".Musica"/>
     </application>
 
 </manifest>
