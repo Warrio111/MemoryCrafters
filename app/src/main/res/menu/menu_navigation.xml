@@ -1,0 +1,46 @@
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_home"
+        android:icon="@drawable/ic_home"
+        android:title="Inicio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_notifications"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_popup_reminder"
+        android:title="Notifications"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_profile"
+        android:title="Perfil"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/ic_profile"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_music"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_lock_silent_mode_off"
+        android:title="Music"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_captures"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="Captures"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_calendar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:title="Calendar"
+        app:showAsAction="ifRoom" />
+</menu>
