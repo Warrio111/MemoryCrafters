@@ -28,8 +28,8 @@ import java.util.Collections;
 public class Musica extends Activity {
     private static final int REQUEST_CODE_SELECT_MUSIC = 1001;
     private MediaPlayer mediaPlayer;
-    private Button playButton;
-    private Button pauseButton;
+    private Button playButton, pauseButton, exitButton;
+
     private AudioManager audioManager;
     private PhoneStateListener phoneStateListener;
 
@@ -43,6 +43,7 @@ public class Musica extends Activity {
         // Inicializar los botones
         playButton = findViewById(R.id.playButton);
         pauseButton = findViewById(R.id.pauseButton);
+        exitButton = findViewById(R.id.exitButton);
 
         // Inicializar el reproductor de música
         mediaPlayer = MediaPlayer.create(this, R.raw.sample_music);
@@ -60,6 +61,14 @@ public class Musica extends Activity {
             @Override
             public void onClick(View v) {
                 pauseMusic();
+            }
+        });
+
+        // Configurar el botón de salida
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
 
