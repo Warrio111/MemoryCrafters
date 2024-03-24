@@ -1,9 +1,17 @@
 package com.example.memorycrafters;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -13,19 +21,18 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Juego extends Activity {
 
     // variables para los componentes de la vista
     ImageButton imb00, imb01, imb02, imb03, imb04, imb05, imb06, imb07, imb08, imb09, imb10, imb11, imb12, imb13, imb14, imb15;
     ImageButton[] tablero = new ImageButton[16];
-    Button botonReiniciar, botonSalir;
+    Button  botonSalir;
     TextView textoPuntuacion;
     int puntuacion;
     int aciertos;
-
     //imagenes
     int[] imagenes;
     int fondo;
@@ -34,14 +41,21 @@ public class Juego extends Activity {
     ArrayList<Integer> arrayDesordenado;
     ImageButton primero;
     int numeroPrimero, numeroSegundo;
-    boolean bloqueo = false;
+    boolean blockFlag = false;
     final Handler handler = new Handler();
+
+    DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.juego);
+        databaseHelper = new DatabaseHelper(this);
         init();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void cargarTablero(){
@@ -81,18 +95,14 @@ public class Juego extends Activity {
     }
 
     private void cargarBotones(){
-        botonReiniciar = findViewById(R.id.botonJuegoReiniciar);
         botonSalir = findViewById(R.id.botonJuegoSalir);
-        botonReiniciar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                init();
-            }
-        });
-
         botonSalir.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
+                //databaseHelper.registrarPartidaYMonedas(puntuacion);
+                //ArrayList<String> partidas = databaseHelper.obtenerPartidas();
+                registrarPartidaYMonedasAsync(puntuacion);
                 finish();
             }
         });
@@ -102,7 +112,7 @@ public class Juego extends Activity {
         textoPuntuacion = findViewById(R.id.texto_puntuacion);
         puntuacion = 0;
         aciertos = 0;
-        textoPuntuacion.setText("Puntuacion: " + puntuacion);
+        textoPuntuacion.setText("" + puntuacion);
     }
 
     private void cargarImagenes(){
@@ -137,17 +147,17 @@ public class Juego extends Activity {
             primero.setEnabled(false);
             numeroPrimero = arrayDesordenado.get(i);
         } else {
-            bloqueo = true;
+            blockFlag = true;
             imgb.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imgb.setImageResource(imagenes[arrayDesordenado.get(i)]);
             imgb.setEnabled(false);
             numeroSegundo = arrayDesordenado.get(i);
             if(numeroPrimero == numeroSegundo){
                 primero = null;
-                bloqueo = false;
+                blockFlag = false;
                 aciertos++;
                 puntuacion++;
-                textoPuntuacion.setText("Puntuación: " + puntuacion);
+                textoPuntuacion.setText("" + puntuacion);
                 if(aciertos == imagenes.length){
                     Toast toast = Toast.makeText(getApplicationContext(), "Has ganado!!", Toast.LENGTH_LONG);
                     toast.show();
@@ -162,44 +172,58 @@ public class Juego extends Activity {
                         imgb.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         imgb.setImageResource(fondo);
                         imgb.setEnabled(true);
-                        bloqueo = false;
+                        blockFlag = false;
                         primero = null;
                         puntuacion--;
-                        textoPuntuacion.setText("Puntuación: " + puntuacion);
+                        textoPuntuacion.setText("" + puntuacion);
                     }
                 }, 1000);
             }
         }
     }
-
+    @SuppressLint("CheckResult")
+    private void registrarPartidaYMonedasAsync(int cantidadMonedas) {
+        Completable.fromAction(() -> {
+                    databaseHelper.registrarPartidaYMonedas(cantidadMonedas);
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnComplete(() -> {
+                    Toast.makeText(getApplicationContext(), "Partida registrada correctamente", Toast.LENGTH_SHORT).show();
+                })
+                .doOnError(throwable -> {
+                    Toast.makeText(getApplicationContext(), "Error al registrar la partida", Toast.LENGTH_SHORT).show();
+                    throwable.printStackTrace();
+                })
+                .subscribe(); // Suscribirse al Completable
+    }
     private void init(){
         cargarTablero();
         cargarBotones();
         cargarTexto();
         cargarImagenes();
         arrayDesordenado = barajar(imagenes.length);
+        // Este proceso posiciona las imagenes en el tablero
         for(int i=0; i<tablero.length; i++){
             tablero[i].setScaleType(ImageView.ScaleType.CENTER_CROP);
             tablero[i].setImageResource(imagenes[arrayDesordenado.get(i)]);
-            //tablero[i].setImageResource(fondo);
         }
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                for(int i=0; i<tablero.length; i++){
-                    tablero[i].setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    //tablero[i].setImageResource(imagenes[arrayDesordenado.get(i)]);
-                    tablero[i].setImageResource(fondo);
+                for (ImageButton imageButton : tablero) {
+                    imageButton.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageButton.setImageResource(fondo);
                 }
             }
-        }, 500);
+        }, 2000);
         for(int i=0; i<tablero.length; i++) {
             final int j = i;
             tablero[i].setEnabled(true);
             tablero[i].setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(!bloqueo)
+                    if(!blockFlag)
                         comprobar(j, tablero[j]);
                 }
             });
