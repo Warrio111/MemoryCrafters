@@ -10,7 +10,6 @@
         android:padding="10dp"
         android:layout_marginTop="100dp">
 
-        //FILA 1
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -43,7 +42,6 @@
 
         </TableRow>
 
-        //FILA 2
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -76,7 +74,6 @@
 
         </TableRow>
 
-        //FILA 3
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -109,7 +106,6 @@
 
         </TableRow>
 
-        //FILA 4
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -150,11 +146,6 @@
             android:layout_marginTop="50dp">
 
             <Button
-                android:id="@+id/botonJuegoReiniciar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/boton_juego_reinit"></Button>
-            <Button
                 android:id="@+id/botonJuegoSalir"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -168,6 +159,12 @@
             android:orientation="horizontal"
             android:gravity="center_horizontal"
             android:layout_marginTop="50dp">
+
+            <ImageView
+                android:id="@+id/moneda_view"
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:src="@drawable/moneda" />
 
             <TextView
                 android:id="@+id/texto_puntuacion"
