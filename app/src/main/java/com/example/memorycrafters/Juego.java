@@ -3,13 +3,15 @@ package com.example.memorycrafters;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import com.example.memorycrafters.DatabaseHelper;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -19,8 +21,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Juego extends Activity {
 
@@ -48,7 +50,12 @@ public class Juego extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.juego);
+        databaseHelper = new DatabaseHelper(this);
         init();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void cargarTablero(){
@@ -91,19 +98,11 @@ public class Juego extends Activity {
         botonSalir = findViewById(R.id.botonJuegoSalir);
         botonSalir.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
+                //databaseHelper.registrarPartidaYMonedas(puntuacion);
+                //ArrayList<String> partidas = databaseHelper.obtenerPartidas();
                 registrarPartidaYMonedasAsync(puntuacion);
-/*                Completable.fromAction(() -> {
-                            databaseHelper.obtenerPartidas();
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(() -> {
-                            Toast.makeText(getApplicationContext(), "Obtencion de partida Exitosa", Toast.LENGTH_SHORT).show();
-                        }, throwable -> {
-                            Toast.makeText(getApplicationContext(), "Error al Obtener Partidas", Toast.LENGTH_SHORT).show();
-                            throwable.printStackTrace();
-                        });*/
                 finish();
             }
         });
@@ -158,7 +157,7 @@ public class Juego extends Activity {
                 blockFlag = false;
                 aciertos++;
                 puntuacion++;
-                textoPuntuacion.setText("Puntuación: " + puntuacion);
+                textoPuntuacion.setText("" + puntuacion);
                 if(aciertos == imagenes.length){
                     Toast toast = Toast.makeText(getApplicationContext(), "Has ganado!!", Toast.LENGTH_LONG);
                     toast.show();
@@ -184,35 +183,21 @@ public class Juego extends Activity {
     }
     @SuppressLint("CheckResult")
     private void registrarPartidaYMonedasAsync(int cantidadMonedas) {
-        // Registro de partida
         Completable.fromAction(() -> {
-                    databaseHelper.registrarPartida();
+                    databaseHelper.registrarPartidaYMonedas(cantidadMonedas);
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
+                .doOnComplete(() -> {
                     Toast.makeText(getApplicationContext(), "Partida registrada correctamente", Toast.LENGTH_SHORT).show();
-                }, throwable -> {
+                })
+                .doOnError(throwable -> {
                     Toast.makeText(getApplicationContext(), "Error al registrar la partida", Toast.LENGTH_SHORT).show();
                     throwable.printStackTrace();
-                });
-
-        // Registro de monedas
-        Completable.fromAction(() -> {
-                    databaseHelper.registrarMonedas(cantidadMonedas);
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
-                    Toast.makeText(getApplicationContext(), "Monedas registradas correctamente", Toast.LENGTH_SHORT).show();
-                }, throwable -> {
-                    Toast.makeText(getApplicationContext(), "Error al registrar las monedas", Toast.LENGTH_SHORT).show();
-                    throwable.printStackTrace();
-                });
+                .subscribe(); // Suscribirse al Completable
     }
-
     private void init(){
-        databaseHelper = new DatabaseHelper(this);
         cargarTablero();
         cargarBotones();
         cargarTexto();

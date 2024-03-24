@@ -25,7 +25,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_FECHA = "fecha";
 
     // Columnas de la tabla "monedas"
-    private static final String COLUMN_MONEDAS_ID = "id";
+    private static final String COLUMN_MONEDAS_ID = "monedas_id";
     private static final String COLUMN_CANTIDAD_MONEDAS = "cantidad";
     private static final String SQL_CREATE_PARTIDAS_TABLE = "CREATE TABLE " + TABLE_PARTIDAS + "("
             + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -73,10 +73,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return dateFormat.format(calendar.getTime());
     }
 
-    public void registrarPartida() {
+    public void registrarPartida(int monedasId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_FECHA, obtenerFechaActual());
+        values.put(COLUMN_MONEDAS_ID, monedasId); // Asignar el ID de las monedas a la partida
         try {
             // Insertar la nueva partida en la tabla "partidas"
             db.insert(TABLE_PARTIDAS, null, values);
@@ -87,20 +88,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public void registrarPartidaYMonedas(int cantidadMonedas) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CANTIDAD_MONEDAS, cantidadMonedas);
+        try {
+            // Insertar la cantidad de monedas en la tabla "monedas"
+            long monedasId = db.insert(TABLE_MONEDAS, null, values);
+            // Registrar la partida asociada a estas monedas
+            if (monedasId != -1) { // Verificar si se insertaron las monedas correctamente
+                registrarPartida((int) monedasId); // Asignar el ID de las monedas a la partida
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+    }
+
+
     public ArrayList<String> obtenerPartidas() {
         ArrayList<String> partidas = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_PARTIDAS, null);
+        Cursor cursor = db.rawQuery("SELECT p." + COLUMN_ID + ", p." + COLUMN_FECHA + ", m." + COLUMN_CANTIDAD_MONEDAS +
+                " FROM " + TABLE_PARTIDAS + " p LEFT JOIN " + TABLE_MONEDAS + " m" +
+                " ON p." + COLUMN_MONEDAS_ID + " = m." + COLUMN_MONEDAS_ID, null);
         if (cursor.moveToFirst()) {
             do {
                 // Obtener el ID de la partida
                 @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
                 // Obtener la fecha de la partida
                 @SuppressLint("Range") String fecha = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA));
-                // Obtener el ID de las monedas asociadas a la partida
-                @SuppressLint("Range") int monedasId = cursor.getInt(cursor.getColumnIndex(COLUMN_MONEDAS_ID));
                 // Obtener la cantidad de monedas asociadas a la partida
-                int cantidadMonedas = obtenerCantidadMonedas(monedasId);
+                @SuppressLint("Range") int cantidadMonedas = cursor.getInt(cursor.getColumnIndex(COLUMN_CANTIDAD_MONEDAS));
                 // Agregar la información de la partida a la lista
                 partidas.add("Partida #" + id + " - Fecha: " + fecha + " - Cantidad de monedas: " + cantidadMonedas);
             } while (cursor.moveToNext());
@@ -110,8 +130,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return partidas;
     }
 
+
     @SuppressLint("Range")
-    private int obtenerCantidadMonedas(int monedasId) {
+    public int obtenerCantidadMonedas(int monedasId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_MONEDAS, new String[]{COLUMN_CANTIDAD_MONEDAS}, COLUMN_MONEDAS_ID + "=?",
                 new String[]{String.valueOf(monedasId)}, null, null, null);
@@ -127,17 +148,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public void registrarMonedas(int cantidadMonedas) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_CANTIDAD_MONEDAS, cantidadMonedas);
-        try {
-            // Insertar la cantidad de monedas en la tabla "monedas"
-            db.insert(TABLE_MONEDAS, null, values);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            db.close();
-        }
-    }
+
 }
