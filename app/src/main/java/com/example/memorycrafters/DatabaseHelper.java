@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -130,7 +131,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return partidas;
     }
 
-
     @SuppressLint("Range")
     public int obtenerCantidadMonedas(int monedasId) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -147,6 +147,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return cantidadMonedas;
     }
 
-
+    public HashMap<String, Integer> obtenerTodasVictorias() {
+        HashMap<String, Integer> victorias = new HashMap<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_PARTIDAS, new String[]{COLUMN_FECHA, COLUMN_MONEDAS_ID}, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                // Obtener la fecha de la partida
+                @SuppressLint("Range") String fecha = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA));
+                // Obtener el ID de las monedas asociadas
+                @SuppressLint("Range") int monedasId = cursor.getInt(cursor.getColumnIndex(COLUMN_MONEDAS_ID));
+                // Obtener la cantidad de monedas asociadas
+                int cantidadMonedas = obtenerCantidadMonedas(monedasId);
+                // Agregar la fecha y la cantidad de monedas al HashMap
+                victorias.put(fecha, cantidadMonedas);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return victorias;
+    }
 
 }

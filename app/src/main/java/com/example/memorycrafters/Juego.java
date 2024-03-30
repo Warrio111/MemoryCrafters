@@ -6,6 +6,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -17,14 +18,18 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.appcompat.app.ActionBar;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Juego extends Activity {
+public class Juego extends AppCompatActivity {
 
     // variables para los componentes de la vista
     ImageButton imb00, imb01, imb02, imb03, imb04, imb05, imb06, imb07, imb08, imb09, imb10, imb11, imb12, imb13, imb14, imb15;
@@ -45,17 +50,40 @@ public class Juego extends Activity {
     final Handler handler = new Handler();
 
     DatabaseHelper databaseHelper;
+    Sonido sonidoAnimaciones;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.juego);
+        // Mostrar ActionBar
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true); // Mostrar botón de retroceso en la ActionBar
+        }
         databaseHelper = new DatabaseHelper(this);
+        sonidoAnimaciones = new Sonido(this);
         init();
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_navigation, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Manejar los clics en los elementos del menú
+        int id = item.getItemId();
+        if (id == R.id.action_music) {
+            Intent i = new Intent(this, Musica.class);
+            startActivity(i);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void cargarTablero(){
@@ -153,6 +181,7 @@ public class Juego extends Activity {
             imgb.setEnabled(false);
             numeroSegundo = arrayDesordenado.get(i);
             if(numeroPrimero == numeroSegundo){
+                sonidoAnimaciones.reproducirSonido(SoundAnimation.Ficha_Correcta);
                 primero = null;
                 blockFlag = false;
                 aciertos++;
@@ -161,8 +190,10 @@ public class Juego extends Activity {
                 if(aciertos == imagenes.length){
                     Toast toast = Toast.makeText(getApplicationContext(), "Has ganado!!", Toast.LENGTH_LONG);
                     toast.show();
+                    GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
                 }
             } else {
+                sonidoAnimaciones.reproducirSonido(SoundAnimation.Ficha_Incorrecta);
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {

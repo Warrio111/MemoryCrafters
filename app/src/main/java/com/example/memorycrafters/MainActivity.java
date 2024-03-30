@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+        startService(new Intent(this, MusicService.class));
     }
 
     @Override
@@ -55,10 +56,10 @@ public class MainActivity extends AppCompatActivity {
             showMusic();
             return true;
         } else if(id == R.id.action_captures) {
-            //showCaptures();
+            showCaptures();
             return true;
         } else if (id == R.id.action_calendar) {
-            //showCalendar();
+            showCalendar();
             return true;
         } else if (id == R.id.action_notifications) {
             //showNotifications();
@@ -81,16 +82,23 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(this, Musica.class);
         startActivity(i);
     }
-//    private void showCaptures(){
-//        Intent i = new Intent(this, Capturas.class);
-//        startActivity(i);
-//    }
-//    private void showCalendar(){
-//        Intent i = new Intent(this, Calendario.class);
-//        startActivity(i);
-//    }
+    private void showCaptures(){
+        Intent i = new Intent(this, Galeria.class);
+        startActivity(i);
+    }
+     private void showCalendar(){
+        Intent i = new Intent(this, Calendario.class);
+        startActivity(i);
+    }
 //    private void showNotifications(){
 //        Intent i = new Intent(this, Notificaciones.class);
 //        startActivity(i);
 //    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, MusicService.class));
+    }
+
 }
