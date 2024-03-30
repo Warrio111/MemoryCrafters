@@ -29,7 +29,7 @@ public class Calendario extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.calendario_layout);
 
-        databaseHelper = new DatabaseHelper(this);
+        databaseHelper = DatabaseHelper.getInstance(this);
         victorias = databaseHelper.obtenerTodasVictorias(); // Obtener todas las victorias de la base de datos
         exitCalendarioButton = findViewById(R.id.exitCalendarButton);
         CalendarView calendarView = findViewById(R.id.calendarView);

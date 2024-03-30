@@ -62,7 +62,6 @@ public class Juego extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true); // Mostrar botón de retroceso en la ActionBar
         }
-        databaseHelper = new DatabaseHelper(this);
         sonidoAnimaciones = new Sonido(this);
         mNotificationHelper = new NotificationHelper(this);
         init();
@@ -132,7 +131,7 @@ public class Juego extends AppCompatActivity {
             {
                 //databaseHelper.registrarPartidaYMonedas(puntuacion);
                 //ArrayList<String> partidas = databaseHelper.obtenerPartidas();
-                registrarPartidaYMonedasAsync(puntuacion);
+                actualizarMonedasAsync(puntuacion);
                 finish();
             }
         });
@@ -189,6 +188,8 @@ public class Juego extends AppCompatActivity {
                 aciertos++;
                 puntuacion++;
                 textoPuntuacion.setText("" + puntuacion);
+                //actualizarTableroAsync(numeroPrimero);
+                databaseHelper.updateCardVisibility(numeroPrimero,1);
                 if(aciertos == imagenes.length){
                     mNotificationHelper.showVictoryNotification("¡Has ganado!", "¡Felicidades! Has conseguido todas las parejas. ¡Sigue así!");
                     GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
@@ -213,27 +214,57 @@ public class Juego extends AppCompatActivity {
             }
         }
     }
+    // Método para actualizar las monedas de forma asíncrona
     @SuppressLint("CheckResult")
-    private void registrarPartidaYMonedasAsync(int cantidadMonedas) {
+    public void actualizarMonedasAsync(int cantidadMonedas) {
         Completable.fromAction(() -> {
-                    databaseHelper.registrarPartidaYMonedas(cantidadMonedas);
+                    // Actualizar las monedas en la base de datos
+                    databaseHelper.actualizarMonedas(cantidadMonedas);
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io()) // Realizar la operación en un hilo de background
+                .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
                 .doOnComplete(() -> {
-                    Toast.makeText(getApplicationContext(), "Partida registrada correctamente", Toast.LENGTH_SHORT).show();
+                    // Manejar la finalización exitosa de la actualización
+                    Toast.makeText(getApplicationContext(), "Monedas actualizadas correctamente", Toast.LENGTH_SHORT).show();
                 })
                 .doOnError(throwable -> {
-                    Toast.makeText(getApplicationContext(), "Error al registrar la partida", Toast.LENGTH_SHORT).show();
+                    // Manejar cualquier error durante la actualización
+                    Toast.makeText(getApplicationContext(), "Error al actualizar las monedas", Toast.LENGTH_SHORT).show();
                     throwable.printStackTrace();
                 })
                 .subscribe(); // Suscribirse al Completable
     }
+    @SuppressLint("CheckResult")
+    public void actualizarTableroAsync(int cardID) {
+        Completable.fromAction(() -> {
+                    // Actualizar las monedas en la base de datos
+                    databaseHelper.updateCardVisibility(cardID,1);
+                })
+                .subscribeOn(Schedulers.io()) // Realizar la operación en un hilo de background
+                .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
+                .doOnComplete(() -> {
+                    // Manejar la finalización exitosa de la actualización
+                    Toast.makeText(getApplicationContext(), "Tablero actualizado correctamente", Toast.LENGTH_SHORT).show();
+                    // Cerrar la conexión a la base de datos después de completar todas las operaciones necesarias
+                    databaseHelper.close();
+                })
+                .doOnError(throwable -> {
+                    // Manejar cualquier error durante la actualización
+                    Toast.makeText(getApplicationContext(), "Error al actualizar el Tablero", Toast.LENGTH_SHORT).show();
+                    throwable.printStackTrace();
+                    // Cerrar la conexión a la base de datos después de completar todas las operaciones necesarias
+                    databaseHelper.close();
+                })
+                .subscribe(); // Suscribirse
+    }
+
     private void init(){
         cargarTablero();
         cargarBotones();
         cargarTexto();
         cargarImagenes();
+        databaseHelper = DatabaseHelper.getInstance(this);
+        databaseHelper.inicializarPartida(imagenes.length);
         arrayDesordenado = barajar(imagenes.length);
         // Este proceso posiciona las imagenes en el tablero
         for(int i=0; i<tablero.length; i++){
