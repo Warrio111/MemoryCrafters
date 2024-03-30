@@ -50,7 +50,8 @@ public class Juego extends AppCompatActivity {
     final Handler handler = new Handler();
 
     DatabaseHelper databaseHelper;
-    Sonido sonidoAnimaciones;
+    private Sonido sonidoAnimaciones;
+    private NotificationHelper mNotificationHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,6 +64,7 @@ public class Juego extends AppCompatActivity {
         }
         databaseHelper = new DatabaseHelper(this);
         sonidoAnimaciones = new Sonido(this);
+        mNotificationHelper = new NotificationHelper(this);
         init();
     }
     @Override
@@ -188,8 +190,7 @@ public class Juego extends AppCompatActivity {
                 puntuacion++;
                 textoPuntuacion.setText("" + puntuacion);
                 if(aciertos == imagenes.length){
-                    Toast toast = Toast.makeText(getApplicationContext(), "Has ganado!!", Toast.LENGTH_LONG);
-                    toast.show();
+                    mNotificationHelper.showVictoryNotification("¡Has ganado!", "¡Felicidades! Has conseguido todas las parejas. ¡Sigue así!");
                     GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
                 }
             } else {

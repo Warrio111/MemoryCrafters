@@ -16,24 +16,24 @@
         android:id="@+id/playButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Play" />
+        android:text="@string/boton_init_play" />
 
     <Button
         android:id="@+id/pauseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pause" />
+        android:text="@string/boton_init_pause" />
 
     <Button
         android:id="@+id/selectMusicButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Music" />
+        android:text="@string/boton_init_select_music" />
 
     <Button
         android:id="@+id/exitButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Exit" />
+        android:text="@string/boton_quit" />
 
 </LinearLayout>

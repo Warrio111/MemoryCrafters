@@ -61,11 +61,13 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_calendar) {
             showCalendar();
             return true;
-        } else if (id == R.id.action_notifications) {
-            //showNotifications();
+        } else if (id == R.id.action_help) {
+            showHelp();
+            return true;
+        } else if (id == R.id.action_language) {
+            showLanguage();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -90,10 +92,14 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(this, Calendario.class);
         startActivity(i);
     }
-//    private void showNotifications(){
-//        Intent i = new Intent(this, Notificaciones.class);
-//        startActivity(i);
-//    }
+    private void showHelp(){
+        Intent i = new Intent(this, HelpActivity.class);
+        startActivity(i);
+    }
+    private void showLanguage(){
+        Intent i = new Intent(this, LanguageActivity.class);
+        startActivity(i);
+    }
 
     @Override
     protected void onDestroy() {

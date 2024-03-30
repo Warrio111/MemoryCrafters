@@ -1,6 +1,8 @@
 package com.example.memorycrafters;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -21,7 +23,7 @@ public class Calendario extends AppCompatActivity {
 
     private DatabaseHelper databaseHelper;
     private HashMap<String, Integer> victorias; // Almacenar las victorias obtenidas de la base de datos
-
+    private Button exitCalendarioButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,7 +31,7 @@ public class Calendario extends AppCompatActivity {
 
         databaseHelper = new DatabaseHelper(this);
         victorias = databaseHelper.obtenerTodasVictorias(); // Obtener todas las victorias de la base de datos
-
+        exitCalendarioButton = findViewById(R.id.exitCalendarButton);
         CalendarView calendarView = findViewById(R.id.calendarView);
 
         // Configurar un listener para el evento de selección de fecha
@@ -63,6 +65,12 @@ public class Calendario extends AppCompatActivity {
                 calendarView.setDate(dateInMillis, true, true);
             }
         }
+        exitCalendarioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     private void mostrarVictorias(String selectedDate) {
@@ -138,5 +146,9 @@ public class Calendario extends AppCompatActivity {
             e.printStackTrace();
             return 0;
         }
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

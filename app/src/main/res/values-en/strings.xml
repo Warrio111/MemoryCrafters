@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MemoryCrafters</string>
     <string name="boton_init_play">Play</string>
@@ -62,5 +63,4 @@
     <string name="boton_init_pause">Pause</string>
     <string name="boton_init_select_music">Select Music</string>
     <string name="language">Language</string>
-
 </resources>

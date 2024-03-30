@@ -3,44 +3,51 @@
     <item
         android:id="@+id/action_home"
         android:icon="@drawable/ic_home"
-        android:title="Inicio"
+        android:title="@string/home"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_notifications"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:icon="@android:drawable/ic_popup_reminder"
-        android:title="Notifications"
-        app:showAsAction="always" />
-    <item
-        android:id="@+id/action_profile"
-        android:title="Perfil"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:icon="@drawable/ic_profile"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_music"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@android:drawable/ic_lock_silent_mode_off"
-        android:title="Music"
+        android:title="@string/music"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_captures"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@android:drawable/ic_menu_gallery"
-        android:title="Captures"
+        android:title="@string/snapshots"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_calendar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@android:drawable/ic_menu_my_calendar"
-        android:title="Calendar"
+        android:title="@string/calendar"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_profile"
+        android:title="@string/profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/ic_profile"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_language"
+        android:title="@string/language"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_mapmode"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_help"
+        android:title="@string/help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_info_details"
+        app:showAsAction="ifRoom" />
+
 </menu>

@@ -1,17 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MemoryCrafters</string>
-    <string name="boton_init_play">Play</string>
-    <string name="boton_init_quit">Quit</string>
-    <string name="boton_juego_reinit">Restart</string>
-    <string name="boton_juego_quit">Quit</string>
-    <string name="title_activity_musica">Music</string>
+    <string name="boton_init_play">Jugar</string>
+    <string name="boton_init_quit">Salir</string>
+    <string name="boton_juego_reinit">Reiniciar</string>
+    <string name="boton_juego_quit">Salir</string>
+    <string name="title_activity_musica">Música</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
+    <string name="first_fragment_label">Primer Fragmento</string>
+    <string name="second_fragment_label">Segundo Fragmento</string>
+    <string name="next">Siguiente</string>
+    <string name="previous">Anterior</string>
 
-    <string name="calendar">Calendar</string>
+    <string name="calendar">Calendario</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
@@ -49,18 +50,17 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
-    <string name="sounds">Sounds</string>
-    <string name="boton_quit">Quit</string>
-    <string name="welcome">Welcome to MemoryCrafters!</string>s
-    <string name="date">Date</string>
-    <string name="quantityOfcurrency">Currency</string>
-    <string name="home">Home</string>
-    <string name="snapshots">Snapshots</string>
-    <string name="music">Music</string>
-    <string name="profile">Profile</string>
-    <string name="help">Help</string>
-    <string name="boton_init_pause">Pause</string>
-    <string name="boton_init_select_music">Select Music</string>
-    <string name="language">Language</string>
-
+    <string name="sounds">Sonidos</string>
+    <string name="boton_quit">Salir</string>
+    <string name="welcome">¡Bienvenido a MemoryCrafters!</string>
+    <string name="date">Fecha</string>
+    <string name="quantityOfcurrency">Cantidad de Moneda</string>
+    <string name="home">Inicio</string>
+    <string name="snapshots">Instantáneas</string>
+    <string name="music">Música</string>
+    <string name="profile">Perfil</string>
+    <string name="help">Ayuda</string>
+    <string name="boton_init_pause">Pausa</string>
+    <string name="boton_init_select_music">Seleccionar Música</string>
+    <string name="language">Idioma</string>
 </resources>
