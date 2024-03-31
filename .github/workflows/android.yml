@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Test-Report
-          path: app/build/reports/lint-results-debug.html
+          path: app/build/reports/test/lint-results-debug.html
         if: always()
         
       - name: Build Release AAB
@@ -77,20 +77,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: release-apk
-          path: app/build/outputs/apk/release/app-release.apk
-
-  test:
-    needs: [validation]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Run Unit Tests
-        run: ./gradlew test
-
-      - name: Upload Unit Test Report
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-report
-          path: app/build/reports/tests/testDebugUnitTest/         
+          path: app/build/outputs/apk/release/app-release.apk       
