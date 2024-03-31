@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MemoryCrafters</string>
     <string name="boton_init_play">Play</string>
@@ -70,5 +71,4 @@
     <string name="boardUpdatedSuccessfully">Board updated successfully</string>
     <string name="errorUpdatingBoard">Error updating the board</string>
     <string name="noVictories">There are no victories registered in</string>
-
 </resources>

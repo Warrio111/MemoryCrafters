@@ -6,6 +6,8 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -17,14 +19,26 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.appcompat.app.ActionBar;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+public class Juego extends AppCompatActivity {
 
-public class Juego extends Activity {
+    // Variable de permiso necesaria para las capturas de pantalla
+    private static final int REQUEST_PERMISSION_STORAGE = 100;
 
     // variables para los componentes de la vista
     ImageButton imb00, imb01, imb02, imb03, imb04, imb05, imb06, imb07, imb08, imb09, imb10, imb11, imb12, imb13, imb14, imb15;
@@ -45,17 +59,41 @@ public class Juego extends Activity {
     final Handler handler = new Handler();
 
     DatabaseHelper databaseHelper;
+    private Sonido sonidoAnimaciones;
+    private NotificationHelper mNotificationHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.juego);
-        databaseHelper = new DatabaseHelper(this);
+        // Mostrar ActionBar
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true); // Mostrar botón de retroceso en la ActionBar
+        }
+        sonidoAnimaciones = new Sonido(this);
+        mNotificationHelper = new NotificationHelper(this);
         init();
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_navigation, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Manejar los clics en los elementos del menú
+        int id = item.getItemId();
+        if (id == R.id.action_music) {
+            Intent i = new Intent(this, Musica.class);
+            startActivity(i);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void cargarTablero(){
@@ -102,7 +140,7 @@ public class Juego extends Activity {
             {
                 //databaseHelper.registrarPartidaYMonedas(puntuacion);
                 //ArrayList<String> partidas = databaseHelper.obtenerPartidas();
-                registrarPartidaYMonedasAsync(puntuacion);
+                actualizarMonedasAsync(puntuacion);
                 finish();
             }
         });
@@ -153,16 +191,29 @@ public class Juego extends Activity {
             imgb.setEnabled(false);
             numeroSegundo = arrayDesordenado.get(i);
             if(numeroPrimero == numeroSegundo){
+                sonidoAnimaciones.reproducirSonido(SoundAnimation.Ficha_Correcta);
                 primero = null;
                 blockFlag = false;
                 aciertos++;
                 puntuacion++;
                 textoPuntuacion.setText("" + puntuacion);
+                //actualizarTableroAsync(numeroPrimero);
+                databaseHelper.updateCardVisibility(numeroPrimero,1);
                 if(aciertos == imagenes.length){
-                    Toast toast = Toast.makeText(getApplicationContext(), "Has ganado!!", Toast.LENGTH_LONG);
-                    toast.show();
+                    String title = getResources().getString(R.string.youWin);
+                    String message = getResources().getString(R.string.congratulationsMessage);
+                    mNotificationHelper.showVictoryNotification(title, message);
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        // Si el permiso no ha sido concedido, solicítalo
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_STORAGE);
+                    }
+                    // Permiso ya concedido, procede con la captura de pantalla
+                    GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
+
+                    GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
                 }
             } else {
+                sonidoAnimaciones.reproducirSonido(SoundAnimation.Ficha_Incorrecta);
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -181,27 +232,57 @@ public class Juego extends Activity {
             }
         }
     }
+    // Método para actualizar las monedas de forma asíncrona
     @SuppressLint("CheckResult")
-    private void registrarPartidaYMonedasAsync(int cantidadMonedas) {
+    public void actualizarMonedasAsync(int cantidadMonedas) {
         Completable.fromAction(() -> {
-                    databaseHelper.registrarPartidaYMonedas(cantidadMonedas);
+                    // Actualizar las monedas en la base de datos
+                    databaseHelper.actualizarMonedas(cantidadMonedas);
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io()) // Realizar la operación en un hilo de background
+                .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
                 .doOnComplete(() -> {
-                    Toast.makeText(getApplicationContext(), "Partida registrada correctamente", Toast.LENGTH_SHORT).show();
+                    // Manejar la finalización exitosa de la actualización
+                    String successMessage = getResources().getString(R.string.succesfullUpdatingCoins);
+                    Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
                 })
                 .doOnError(throwable -> {
-                    Toast.makeText(getApplicationContext(), "Error al registrar la partida", Toast.LENGTH_SHORT).show();
+                    // Manejar cualquier error durante la actualización
+                    String errorMessage = getResources().getString(R.string.errorUpdatingCoins);
+                    Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
                     throwable.printStackTrace();
                 })
                 .subscribe(); // Suscribirse al Completable
     }
+    @SuppressLint("CheckResult")
+    public void actualizarTableroAsync(int cardID) {
+        Completable.fromAction(() -> {
+                    // Actualizar las monedas en la base de datos
+                    databaseHelper.updateCardVisibility(cardID,1);
+                })
+                .subscribeOn(Schedulers.io()) // Realizar la operación en un hilo de background
+                .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
+                .doOnComplete(() -> {
+                    // Manejar la finalización exitosa de la actualización
+                    String successMessage = getResources().getString(R.string.boardUpdatedSuccessfully);
+                    Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                })
+                .doOnError(throwable -> {
+                    // Manejar cualquier error durante la actualización
+                    String errorMessage = getResources().getString(R.string.errorUpdatingBoard);
+                    Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                    throwable.printStackTrace();
+                })
+                .subscribe(); // Suscribirse
+    }
+
     private void init(){
         cargarTablero();
         cargarBotones();
         cargarTexto();
         cargarImagenes();
+        databaseHelper = DatabaseHelper.getInstance(this);
+        databaseHelper.inicializarPartida(imagenes.length);
         arrayDesordenado = barajar(imagenes.length);
         // Este proceso posiciona las imagenes en el tablero
         for(int i=0; i<tablero.length; i++){

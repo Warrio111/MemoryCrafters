@@ -7,13 +7,17 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.BaseColumns;
+import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+    private static DatabaseHelper instance;
     private static final String DATABASE_NAME = "MemoryCraftersDB";
     private static final int DATABASE_VERSION = 1;
 
@@ -39,8 +43,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + COLUMN_CANTIDAD_MONEDAS + " INTEGER"
             + ")";
     private static final String SQL_DELETE_MONEDAS_TABLE = "DROP TABLE IF EXISTS " + TABLE_MONEDAS;
-    public DatabaseHelper(Context context) {
+
+    private static final String SQL_CREATE_CARD_ENTRIES =
+            "CREATE TABLE " + MemoryGameContract.CardEntry.TABLE_NAME + " (" +
+                    MemoryGameContract.CardEntry._ID + " INTEGER PRIMARY KEY," +
+                    MemoryGameContract.CardEntry.COLUMN_POSITION + " INTEGER," +
+                    MemoryGameContract.CardEntry.COLUMN_VALUE + " TEXT," +
+                    MemoryGameContract.CardEntry.COLUMN_VISIBILITY + " INTEGER," +
+                    MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID + " INTEGER," + // Columna de la clave externa
+                    "FOREIGN KEY (" + MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID + ") REFERENCES " +
+                    TABLE_PARTIDAS + "(" + COLUMN_ID + ")" + // Restricción de clave externa
+                    ")";
+
+
+    private static final String SQL_DELETE_CARD_ENTRIES = "DROP TABLE IF EXISTS " + MemoryGameContract.CardEntry.TABLE_NAME;
+
+
+    private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+    public static synchronized DatabaseHelper getInstance(Context context) {
+        if (instance == null) {
+            instance = new DatabaseHelper(context.getApplicationContext());
+        }
+        return instance;
     }
 
     @Override
@@ -50,6 +76,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         // Crear tabla de monedas
         db.execSQL(SQL_CREATE_MONEDAS_TABLE);
+
+        // Crear tabla de cartas
+        db.execSQL(SQL_CREATE_CARD_ENTRIES);
     }
 
     @Override
@@ -58,20 +87,137 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // to simply to discard the data and start over
         db.execSQL(SQL_DELETE_PARTIDAS_TABLE);
         db.execSQL(SQL_DELETE_MONEDAS_TABLE);
+        db.execSQL(SQL_DELETE_CARD_ENTRIES);
         onCreate(db);
     }
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
+    @SuppressLint("Range")
+    public void inicializarPartida(int cantidadCartas) {
+        // Lo primero de todo será crear una partida
+        registrarPartidaYMonedas(0);
 
-    private String obtenerFechaActual() {
+        // Obtener el ID de la última partida
+        int partidaId = obtenerUltimaPartidaId();
+
+        // Cerrar la base de datos antes de insertar las cartas
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        // Insertar las cartas en la tabla "cartas"
+        for (int i = 0; i < cantidadCartas; i++) {
+            values.put(MemoryGameContract.CardEntry.COLUMN_POSITION, i);
+            values.put(MemoryGameContract.CardEntry.COLUMN_VALUE, "card_" + i);
+            values.put(MemoryGameContract.CardEntry.COLUMN_VISIBILITY, 0);
+            values.put(MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID, partidaId);
+            db.insert(MemoryGameContract.CardEntry.TABLE_NAME, null, values);
+        }
+
+        // Cerrar la base de datos después de insertar las cartas
+        db.close();
+    }
+
+
+    public void updateCardVisibility(int cardId, int visibility) {
+
+        ContentValues values = new ContentValues();
+        values.put(MemoryGameContract.CardEntry.COLUMN_VISIBILITY, visibility);
+
+        // Obtener el ID de la última partida
+        int partidaId = obtenerUltimaPartidaId();
+
+        String selection = MemoryGameContract.CardEntry.COLUMN_POSITION + " = ? AND " +
+                MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID + " = ?";
+        String[] selectionArgs = { String.valueOf(cardId), String.valueOf(partidaId) };
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.update(
+                    MemoryGameContract.CardEntry.TABLE_NAME,
+                    values,
+                    selection,
+                    selectionArgs);
+            // Consulta raw para debugar: obtener todos los registros de la tabla de cartas (cards)
+            //Cursor cursor = db.rawQuery("SELECT * FROM " + MemoryGameContract.CardEntry.TABLE_NAME, null);
+            Cursor cursor = db.rawQuery("SELECT * FROM " + MemoryGameContract.CardEntry.TABLE_NAME +
+                    " WHERE " + MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID + " = ?", new String[]{String.valueOf(partidaId)});
+            if (cursor.moveToFirst()) {
+                do {
+                    // Iterar sobre los resultados y mostrarlos en el registro (log)
+                    @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry._ID));
+                    @SuppressLint("Range") int position = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_POSITION));
+                    @SuppressLint("Range") String value = cursor.getString(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_VALUE));
+                    @SuppressLint("Range") int visibilityResult = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_VISIBILITY));
+                    @SuppressLint("Range") int partidaIdResult = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID));
+
+                    // Mostrar los resultados en el registro (log)
+                    Log.d("DEBUG", "ID: " + id + ", Position: " + position + ", Value: " + value +
+                            ", Visibility: " + visibilityResult + ", Partida ID: " + partidaIdResult);
+                } while (cursor.moveToNext());
+            }
+            cursor.close(); // Cerrar el cursor después de usarlo
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            db.close();
+        }
+    }
+
+
+
+    @SuppressLint("Range")
+    public int obtenerUltimaPartidaId() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT MAX(" + COLUMN_ID + ") AS " + COLUMN_ID + " FROM " + TABLE_PARTIDAS, null);
+        int partidaId = 0;
+        if (cursor.moveToFirst()) {
+            partidaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+        }
+        cursor.close();
+        db.close();
+        return partidaId;
+    }
+    @SuppressLint("Range")
+    public int obtenerUltimaMonedaId() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT MAX(" + COLUMN_MONEDAS_ID + ") AS " + COLUMN_MONEDAS_ID + " FROM " + TABLE_MONEDAS, null);
+        int monedasId = 0;
+        if (cursor.moveToFirst()) {
+            monedasId = cursor.getInt(cursor.getColumnIndex(COLUMN_MONEDAS_ID));
+        }
+        cursor.close();
+        db.close();
+        return monedasId;
+    }
+
+
+
+    public String obtenerFechaActual() {
         // Obtener la fecha y hora actual
         Calendar calendar = Calendar.getInstance();
         // Formatear la fecha y hora actual como una cadena de texto
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         return dateFormat.format(calendar.getTime());
     }
+
+    // Método para actualizar las monedas
+    public void actualizarMonedas(int cantidadMonedas) {
+        int ultimaMonedaId = obtenerUltimaMonedaId();
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CANTIDAD_MONEDAS, cantidadMonedas);
+        try {
+            // Actualizar las monedas en la tabla "monedas"
+            db.update(TABLE_MONEDAS, values, COLUMN_MONEDAS_ID + " = " + ultimaMonedaId, null);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+    }
+
 
     public void registrarPartida(int monedasId) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -130,7 +276,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return partidas;
     }
 
-
     @SuppressLint("Range")
     public int obtenerCantidadMonedas(int monedasId) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -147,6 +292,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return cantidadMonedas;
     }
 
-
+    public HashMap<String, Integer> obtenerTodasVictorias() {
+        HashMap<String, Integer> victorias = new HashMap<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_PARTIDAS, new String[]{COLUMN_FECHA, COLUMN_MONEDAS_ID}, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                // Obtener la fecha de la partida
+                @SuppressLint("Range") String fecha = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA));
+                // Obtener el ID de las monedas asociadas
+                @SuppressLint("Range") int monedasId = cursor.getInt(cursor.getColumnIndex(COLUMN_MONEDAS_ID));
+                // Obtener la cantidad de monedas asociadas
+                int cantidadMonedas = obtenerCantidadMonedas(monedasId);
+                // Agregar la fecha y la cantidad de monedas al HashMap
+                victorias.put(fecha, cantidadMonedas);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return victorias;
+    }
 
 }

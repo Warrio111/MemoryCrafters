@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+        startService(new Intent(this, MusicService.class));
     }
 
     @Override
@@ -55,16 +56,21 @@ public class MainActivity extends AppCompatActivity {
             showMusic();
             return true;
         } else if(id == R.id.action_captures) {
-            //showCaptures();
+            showCaptures();
             return true;
         } else if (id == R.id.action_calendar) {
-            //showCalendar();
+            showCalendar();
             return true;
-        } else if (id == R.id.action_notifications) {
-            //showNotifications();
+        } else if (id == R.id.action_help) {
+            showHelp();
+            return true;
+        } else if (id == R.id.action_language) {
+            showLanguage();
+            return true;
+        } else if (id == R.id.action_score) {
+            showScore();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -81,16 +87,31 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(this, Musica.class);
         startActivity(i);
     }
-//    private void showCaptures(){
-//        Intent i = new Intent(this, Capturas.class);
-//        startActivity(i);
-//    }
-//    private void showCalendar(){
-//        Intent i = new Intent(this, Calendario.class);
-//        startActivity(i);
-//    }
-//    private void showNotifications(){
-//        Intent i = new Intent(this, Notificaciones.class);
-//        startActivity(i);
-//    }
+    private void showCaptures(){
+        Intent i = new Intent(this, Galeria.class);
+        startActivity(i);
+    }
+     private void showCalendar(){
+        Intent i = new Intent(this, Calendario.class);
+        startActivity(i);
+    }
+    private void showHelp(){
+        Intent i = new Intent(this, HelpActivity.class);
+        startActivity(i);
+    }
+    private void showLanguage(){
+        Intent i = new Intent(this, LanguageActivity.class);
+        startActivity(i);
+    }
+    private void showScore(){
+        Intent i = new Intent(this, Puntuaciones.class);
+        startActivity(i);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, MusicService.class));
+    }
+
 }
