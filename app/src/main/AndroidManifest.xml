@@ -34,6 +34,7 @@
         <activity android:name=".Calendario"/>
         <activity android:name=".HelpActivity" />
         <activity android:name=".LanguageActivity" />
+        <activity android:name=".Puntuaciones" />
     </application>
 
 </manifest>

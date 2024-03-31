@@ -81,10 +81,10 @@ public class Calendario extends AppCompatActivity {
         // Crear una fila para la cabecera de la tabla
         TableRow headerRow = new TableRow(this);
         TextView headerFecha = new TextView(this);
-        headerFecha.setText("Fecha");
+        headerFecha.setText(R.string.date);
         headerRow.addView(headerFecha);
         TextView headerCantidadMonedas = new TextView(this);
-        headerCantidadMonedas.setText("Cantidad de Monedas");
+        headerCantidadMonedas.setText(R.string.quantityOfcurrency);
         headerRow.addView(headerCantidadMonedas);
         tableLayout.addView(headerRow);
 
@@ -126,7 +126,8 @@ public class Calendario extends AppCompatActivity {
 
         // Mostrar un mensaje si no hay victorias registradas para la fecha seleccionada
         if (tableLayout.getChildCount() == 1) {
-            Toast.makeText(this, "No hay victorias registradas para el " + selectedDate, Toast.LENGTH_SHORT).show();
+            String message = getResources().getString(R.string.noVictories) + " " + selectedDate;
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
 

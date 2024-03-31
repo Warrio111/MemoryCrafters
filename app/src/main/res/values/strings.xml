@@ -53,7 +53,7 @@
     <string name="boton_quit">Quit</string>
     <string name="welcome">Welcome to MemoryCrafters!</string>s
     <string name="date">Date</string>
-    <string name="quantityOfcurrency">Currency</string>
+    <string name="quantityOfcurrency">Coins</string>
     <string name="home">Home</string>
     <string name="snapshots">Snapshots</string>
     <string name="music">Music</string>
@@ -62,5 +62,13 @@
     <string name="boton_init_pause">Pause</string>
     <string name="boton_init_select_music">Select Music</string>
     <string name="language">Language</string>
+    <string name="score">Score</string>
+    <string name="youWin">You Win!</string>
+    <string name="congratulationsMessage">Congratulations! You've matched all the pairs. Keep it up!</string>
+    <string name="errorUpdatingCoins">Error Updating Coins</string>
+    <string name="succesfullUpdatingCoins">Coins Updated Successfully</string>
+    <string name="boardUpdatedSuccessfully">Board updated successfully</string>
+    <string name="errorUpdatingBoard">Error updating the board</string>
+    <string name="noVictories">There are no victories registered in</string>
 
 </resources>

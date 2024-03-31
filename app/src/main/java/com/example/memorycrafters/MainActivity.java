@@ -67,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_language) {
             showLanguage();
             return true;
+        } else if (id == R.id.action_score) {
+            showScore();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -98,6 +101,10 @@ public class MainActivity extends AppCompatActivity {
     }
     private void showLanguage(){
         Intent i = new Intent(this, LanguageActivity.class);
+        startActivity(i);
+    }
+    private void showScore(){
+        Intent i = new Intent(this, Puntuaciones.class);
         startActivity(i);
     }
 

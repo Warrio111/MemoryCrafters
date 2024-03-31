@@ -7,6 +7,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -24,12 +25,20 @@ import androidx.appcompat.app.ActionBar;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
-
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 public class Juego extends AppCompatActivity {
+
+    // Variable de permiso necesaria para las capturas de pantalla
+    private static final int REQUEST_PERMISSION_STORAGE = 100;
 
     // variables para los componentes de la vista
     ImageButton imb00, imb01, imb02, imb03, imb04, imb05, imb06, imb07, imb08, imb09, imb10, imb11, imb12, imb13, imb14, imb15;
@@ -191,7 +200,16 @@ public class Juego extends AppCompatActivity {
                 //actualizarTableroAsync(numeroPrimero);
                 databaseHelper.updateCardVisibility(numeroPrimero,1);
                 if(aciertos == imagenes.length){
-                    mNotificationHelper.showVictoryNotification("¡Has ganado!", "¡Felicidades! Has conseguido todas las parejas. ¡Sigue así!");
+                    String title = getResources().getString(R.string.youWin);
+                    String message = getResources().getString(R.string.congratulationsMessage);
+                    mNotificationHelper.showVictoryNotification(title, message);
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        // Si el permiso no ha sido concedido, solicítalo
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_STORAGE);
+                    }
+                    // Permiso ya concedido, procede con la captura de pantalla
+                    GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
+
                     GaleriaService.capturarPantalla(getApplicationContext(), getWindow().getDecorView().getRootView());
                 }
             } else {
@@ -225,11 +243,13 @@ public class Juego extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
                 .doOnComplete(() -> {
                     // Manejar la finalización exitosa de la actualización
-                    Toast.makeText(getApplicationContext(), "Monedas actualizadas correctamente", Toast.LENGTH_SHORT).show();
+                    String successMessage = getResources().getString(R.string.succesfullUpdatingCoins);
+                    Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
                 })
                 .doOnError(throwable -> {
                     // Manejar cualquier error durante la actualización
-                    Toast.makeText(getApplicationContext(), "Error al actualizar las monedas", Toast.LENGTH_SHORT).show();
+                    String errorMessage = getResources().getString(R.string.errorUpdatingCoins);
+                    Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
                     throwable.printStackTrace();
                 })
                 .subscribe(); // Suscribirse al Completable
@@ -244,16 +264,14 @@ public class Juego extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
                 .doOnComplete(() -> {
                     // Manejar la finalización exitosa de la actualización
-                    Toast.makeText(getApplicationContext(), "Tablero actualizado correctamente", Toast.LENGTH_SHORT).show();
-                    // Cerrar la conexión a la base de datos después de completar todas las operaciones necesarias
-                    databaseHelper.close();
+                    String successMessage = getResources().getString(R.string.boardUpdatedSuccessfully);
+                    Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
                 })
                 .doOnError(throwable -> {
                     // Manejar cualquier error durante la actualización
-                    Toast.makeText(getApplicationContext(), "Error al actualizar el Tablero", Toast.LENGTH_SHORT).show();
+                    String errorMessage = getResources().getString(R.string.errorUpdatingBoard);
+                    Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
                     throwable.printStackTrace();
-                    // Cerrar la conexión a la base de datos después de completar todas las operaciones necesarias
-                    databaseHelper.close();
                 })
                 .subscribe(); // Suscribirse
     }

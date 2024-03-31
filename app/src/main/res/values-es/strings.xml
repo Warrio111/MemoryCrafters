@@ -63,4 +63,12 @@
     <string name="boton_init_pause">Pausa</string>
     <string name="boton_init_select_music">Seleccionar Música</string>
     <string name="language">Idioma</string>
+    <string name="score">Puntos</string>
+    <string name="youWin">¡Has ganado!</string>
+    <string name="congratulationsMessage">¡Felicidades! Has conseguido todas las parejas. ¡Sigue así!</string>
+    <string name="errorUpdatingCoins">Error al actualizar las monedas</string>
+    <string name="succesfullUpdatingCoins">Monedas Actualizadas Correctamente</string>
+    <string name="boardUpdatedSuccessfully">Tablero actualizado correctamente</string>
+    <string name="errorUpdatingBoard">Error al actualizar el Tablero</string>
+    <string name="noVictories">No hay victorias registradas para el</string>
 </resources>

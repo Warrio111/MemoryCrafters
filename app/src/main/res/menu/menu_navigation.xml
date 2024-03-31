@@ -15,6 +15,13 @@
         android:title="@string/music"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_score"
+        android:title="@string/score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_captures"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

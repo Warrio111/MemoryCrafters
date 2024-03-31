@@ -8,6 +8,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -127,19 +128,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Obtener el ID de la última partida
         int partidaId = obtenerUltimaPartidaId();
 
-        String selection = MemoryGameContract.CardEntry._ID + " = ? AND " +
+        String selection = MemoryGameContract.CardEntry.COLUMN_POSITION + " = ? AND " +
                 MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID + " = ?";
         String[] selectionArgs = { String.valueOf(cardId), String.valueOf(partidaId) };
-
+        SQLiteDatabase db = this.getWritableDatabase();
         try {
-            SQLiteDatabase db = this.getWritableDatabase();
             db.update(
                     MemoryGameContract.CardEntry.TABLE_NAME,
                     values,
                     selection,
                     selectionArgs);
+            // Consulta raw para debugar: obtener todos los registros de la tabla de cartas (cards)
+            //Cursor cursor = db.rawQuery("SELECT * FROM " + MemoryGameContract.CardEntry.TABLE_NAME, null);
+            Cursor cursor = db.rawQuery("SELECT * FROM " + MemoryGameContract.CardEntry.TABLE_NAME +
+                    " WHERE " + MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID + " = ?", new String[]{String.valueOf(partidaId)});
+            if (cursor.moveToFirst()) {
+                do {
+                    // Iterar sobre los resultados y mostrarlos en el registro (log)
+                    @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry._ID));
+                    @SuppressLint("Range") int position = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_POSITION));
+                    @SuppressLint("Range") String value = cursor.getString(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_VALUE));
+                    @SuppressLint("Range") int visibilityResult = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_VISIBILITY));
+                    @SuppressLint("Range") int partidaIdResult = cursor.getInt(cursor.getColumnIndex(MemoryGameContract.CardEntry.COLUMN_PARTIDA_ID));
+
+                    // Mostrar los resultados en el registro (log)
+                    Log.d("DEBUG", "ID: " + id + ", Position: " + position + ", Value: " + value +
+                            ", Visibility: " + visibilityResult + ", Partida ID: " + partidaIdResult);
+                } while (cursor.moveToNext());
+            }
+            cursor.close(); // Cerrar el cursor después de usarlo
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        finally {
+            db.close();
         }
     }
 
@@ -157,6 +179,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return partidaId;
     }
+    @SuppressLint("Range")
+    public int obtenerUltimaMonedaId() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT MAX(" + COLUMN_MONEDAS_ID + ") AS " + COLUMN_MONEDAS_ID + " FROM " + TABLE_MONEDAS, null);
+        int monedasId = 0;
+        if (cursor.moveToFirst()) {
+            monedasId = cursor.getInt(cursor.getColumnIndex(COLUMN_MONEDAS_ID));
+        }
+        cursor.close();
+        db.close();
+        return monedasId;
+    }
 
 
 
@@ -170,18 +204,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Método para actualizar las monedas
     public void actualizarMonedas(int cantidadMonedas) {
+        int ultimaMonedaId = obtenerUltimaMonedaId();
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_CANTIDAD_MONEDAS, cantidadMonedas);
         try {
             // Actualizar las monedas en la tabla "monedas"
-            db.update(TABLE_MONEDAS, values, null, null);
+            db.update(TABLE_MONEDAS, values, COLUMN_MONEDAS_ID + " = " + ultimaMonedaId, null);
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             db.close();
         }
     }
+
 
     public void registrarPartida(int monedasId) {
         SQLiteDatabase db = this.getWritableDatabase();
