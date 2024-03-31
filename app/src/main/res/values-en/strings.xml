@@ -65,7 +65,7 @@
     <string name="language">Language</string>
     <string name="score">Score</string>
     <string name="youWin">You Win!</string>
-    <string name="congratulationsMessage">Congratulations! You've matched all the pairs. Keep it up!</string>
+    <string name="congratulationsMessage">Congratulations! You\'ve matched all the pairs. Keep it up!</string>
     <string name="errorUpdatingCoins">Error Updating Coins</string>
     <string name="succesfullUpdatingCoins">Coins Updated Successfully</string>
     <string name="boardUpdatedSuccessfully">Board updated successfully</string>

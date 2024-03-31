@@ -18,7 +18,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 public class Calendario extends AppCompatActivity {
 
     private DatabaseHelper databaseHelper;
@@ -30,47 +32,62 @@ public class Calendario extends AppCompatActivity {
         setContentView(R.layout.calendario_layout);
 
         databaseHelper = DatabaseHelper.getInstance(this);
-        victorias = databaseHelper.obtenerTodasVictorias(); // Obtener todas las victorias de la base de datos
         exitCalendarioButton = findViewById(R.id.exitCalendarButton);
         CalendarView calendarView = findViewById(R.id.calendarView);
 
-        // Configurar un listener para el evento de selección de fecha
-        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                // Obtener la fecha seleccionada
-                String selectedDate = formatDate(year, month, dayOfMonth);
+        // Obtener las victorias en un hilo secundario utilizando RXJava
+        obtenerVictorias()
+                .subscribeOn(Schedulers.io()) // Ejecutar en un hilo de background
+                .observeOn(AndroidSchedulers.mainThread()) // Observar el resultado en el hilo principal
+                .subscribe(victorias -> {
+                    this.victorias = victorias;
+                    // Configurar un listener para el evento de selección de fecha
+                    calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+                        @Override
+                        public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                            // Obtener la fecha seleccionada
+                            String selectedDate = formatDate(year, month, dayOfMonth);
 
-                // Mostrar las victorias en una tabla si existen para esa fecha
-                mostrarVictorias(selectedDate);
-            }
-        });
+                            // Mostrar las victorias en una tabla si existen para esa fecha
+                            mostrarVictorias(selectedDate);
+                        }
+                    });
 
-        // Obtener el primer día del mes y el último día del mes
-        Calendar calendar = Calendar.getInstance();
-        calendarView.setMaxDate(calendar.getTimeInMillis());
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        long minDate = calendar.getTimeInMillis();
-        calendar.add(Calendar.MONTH, 1);
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        long maxDate = calendar.getTimeInMillis();
-        calendarView.setMinDate(minDate);
-        calendarView.setMaxDate(maxDate);
+                    // Obtener el primer día del mes y el último día del mes
+                    Calendar calendar = Calendar.getInstance();
+                    calendarView.setMaxDate(calendar.getTimeInMillis());
+                    calendar.set(Calendar.DAY_OF_MONTH, 1);
+                    long minDate = calendar.getTimeInMillis();
+                    calendar.add(Calendar.MONTH, 1);
+                    calendar.add(Calendar.DAY_OF_MONTH, -1);
+                    long maxDate = calendar.getTimeInMillis();
+                    calendarView.setMinDate(minDate);
+                    calendarView.setMaxDate(maxDate);
 
-        // Mostrar las victorias en el calendario
-        for (String date : victorias.keySet()) {
-            long dateInMillis = getDateInMillis(date);
-            if (dateInMillis >= minDate && dateInMillis <= maxDate) {
-                // Resaltar el día en el calendario si hay una victoria asociada
-                calendarView.setDate(dateInMillis, true, true);
-            }
-        }
+                    // Mostrar las victorias en el calendario
+                    for (String date : victorias.keySet()) {
+                        long dateInMillis = getDateInMillis(date);
+                        if (dateInMillis >= minDate && dateInMillis <= maxDate) {
+                            // Resaltar el día en el calendario si hay una victoria asociada
+                            calendarView.setDate(dateInMillis, true, true);
+                        }
+                    }
+                }, throwable -> {
+                    // Manejar cualquier error que ocurra al obtener las victorias
+                    Toast.makeText(this, "Error al obtener las victorias", Toast.LENGTH_SHORT).show();
+                    throwable.printStackTrace();
+                });
+
         exitCalendarioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
         });
+    }
+
+    private Observable<HashMap<String, Integer>> obtenerVictorias() {
+        return Observable.fromCallable(() -> databaseHelper.obtenerTodasVictorias());
     }
 
     private void mostrarVictorias(String selectedDate) {
