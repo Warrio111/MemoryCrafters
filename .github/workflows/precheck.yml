@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  validation:
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Java JDK
         uses: actions/setup-java@v1
@@ -21,7 +21,7 @@ jobs:
           java-version: 1.8
           
       - name: Download and install Gradle
-        uses: gradle/wrapper-action@v2
+        uses: gradle/wrapper-validation-action@v2
         with:
           gradle-version: 8.2
 
@@ -47,7 +47,7 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
 
   test:
-    needs: [lint]
+    needs: [validation]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
