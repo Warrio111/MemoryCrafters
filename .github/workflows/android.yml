@@ -21,12 +21,17 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '8'
-          distribution: 'adopt'
 
       - name: Download and install Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          sdk-version: '34'
+        run: |
+          mkdir -p $RUNNER_TEMP/android/sdk
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip -O $RUNNER_TEMP/android/sdk/tools.zip
+          unzip -qq $RUNNER_TEMP/android/sdk/tools.zip -d $RUNNER_TEMP/android/sdk
+          mv $RUNNER_TEMP/android/sdk/cmdline-tools $RUNNER_TEMP/android/sdk/tools
+          echo "y" | $RUNNER_TEMP/android/sdk/tools/bin/sdkmanager "platforms;android-34"
+          echo "y" | $RUNNER_TEMP/android/sdk/tools/bin/sdkmanager --licenses
+        env:
+          RUNNER_TEMP: ${{ github.workspace }}
 
       - name: Make Gradlew executable
         run: chmod +x ./gradlew
