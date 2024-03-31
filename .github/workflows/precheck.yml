@@ -9,42 +9,83 @@ on:
   workflow_dispatch:
 
 jobs:
+  gradle-validation:
+      name: Gradle Wrapper
+      runs-on: [ ubuntu-latest]
+      steps:
+  
+        # Checkout current repository
+        - name: Fetch Sources
+          uses: actions/checkout@v4
+  
+        # Validate Wrapper
+        - name: Gradle Wrapper Validation
+          uses: gradle/wrapper-validation-action@v2
   validation:
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v1
+      - name: Setup JDK
+        uses: actions/setup-java@v2
         with:
-          java-version: 1.8
-          
-      - name: Download and install Gradle
-        uses: gradle/wrapper-validation-action@v2
+          distribution: 'zulu'
+          java-version: '11'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        
+      # Cache Gradle dependencies and Gradle Wrapper
+      - name: Setup Gradle Cache
+        uses: actions/cache@v2
         with:
-          gradle-version: 7.3
-
-      - name: Make Gradlew executable
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+      
+      - name: Make gradlew executable
         run: chmod +x ./gradlew
+        
+      - name: Generate App Version Name
+        run: echo "VERSION_NAME=$(git describe --tags | sed 's/\(.*\)-/\1./' | sed 's/\(.*\)-/\1+/')" >> $GITHUB_ENV
+      
+      - name: Bump Version
+        uses: chkfung/android-version-actions@v1.1
+        with:
+          gradlePath: app/build.gradle
+          versionCode: ${{ github.run_number }}
+          versionName: ${{ env.VERSION_NAME }}
 
       - name: Build Lint
         run: ./gradlew lintDebug
-    
+        
+      - name: Run Unit Tests
+        run: ./gradlew testStagingDebugUnitTest
+        
+      - name: Run Linters and Test
+        run: ./gradlew check
+
       - name: Upload Build Lint Report
         uses: actions/upload-artifact@v2
         with:
-          name: report
+          name: Test-Report
           path: app/build/reports/lint-results-debug.html
-          
-      - name: Build Gradle
-        run: ./gradlew build
-      
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v2
+        if: always()
+        
+      - name: Build Release AAB
+        run: ./gradlew app:bundleRelease
+                
+      - name: Upload Release APK
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: app
-          path: app/build/outputs/apk/debug/app-debug.apk
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/release/app-release.apk
+          asset_name: signed-artifact.apk
+          asset_content_type: application/zip
 
   test:
     needs: [validation]
