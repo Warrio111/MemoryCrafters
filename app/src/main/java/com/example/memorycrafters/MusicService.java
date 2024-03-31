@@ -1,4 +1,5 @@
 package com.example.memorycrafters;
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.IBinder;
 
 import java.io.IOException;
@@ -18,7 +20,8 @@ public class MusicService extends Service {
 
     private MediaPlayer mediaPlayer;
     private BroadcastReceiver receiver;
-
+    
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     public void onCreate() {
         super.onCreate();
@@ -50,7 +53,11 @@ public class MusicService extends Service {
         filter.addAction(ACTION_PLAY);
         filter.addAction(ACTION_PAUSE);
         filter.addAction(ACTION_SET_MUSIC);
-        registerReceiver(receiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, RECEIVER_EXPORTED);
+        }else {
+            registerReceiver(receiver, filter);
+        }
     }
 
     @Override
