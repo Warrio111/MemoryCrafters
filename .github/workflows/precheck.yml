@@ -1,0 +1,58 @@
+name: Build lint checker report, unit tests and static code analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches:
+    - main
+  workflow_dispatch:
+
+
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Build Lint
+        run: ./gradlew lintDebug
+    
+      - name: Upload Build Lint Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report
+          path: app/build/reports/lint-results-debug.html
+          
+      - name: Build Gradle
+        run: ./gradlew build
+      
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: app
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+  test:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      - name: Upload Unit Test Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-report
+          path: app/build/reports/tests/testDebugUnitTest/         
+        
