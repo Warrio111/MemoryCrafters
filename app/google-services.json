@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "414034310010-57ldhrrojnhgv997h8im1plkbv2v4qkr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.memorycrafters",
+            "certificate_hash": "506aa54d3373694d3dc8fd2ad4083b111b7e3fde"
+          }
+        },
+        {
           "client_id": "414034310010-aqm2dgpaabvquv0r66ih7rdoc0gcpv3l.apps.googleusercontent.com",
           "client_type": 3
         }

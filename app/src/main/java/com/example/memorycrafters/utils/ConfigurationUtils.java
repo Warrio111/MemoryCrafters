@@ -16,7 +16,7 @@ public final class ConfigurationUtils {
     }
     public static boolean isGoogleMisconfigured(@NonNull Context context) {
         return AuthUI.UNCONFIGURED_CONFIG_VALUE.equals(
-                context.getString(R.string.default_web_client_id));
+                context.getString(com.firebase.ui.auth.R.string.default_web_client_id));
     }
     @NonNull
     public static List<AuthUI.IdpConfig> getConfiguredProviders(@NonNull Context context) {

@@ -1,52 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    tools:context=".AuthActivity">
-
-    <ImageView
-        android:id="@+id/image_logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/my_great_logo"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp" />
-
-    <TextView
-        android:id="@+id/text_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_below="@id/image_logo"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp" />
-
-    <Button
-        android:id="@+id/button_google_sign_in"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/providers_google"
-        android:textColor="@color/white"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_below="@id/text_title"
-        android:layout_marginTop="48dp" />
-
-    <Button
-        android:id="@+id/button_email_sign_in"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/providers_email"
-        android:textColor="@color/white"
-        android:background="@color/colorPrimary"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_below="@id/button_google_sign_in"
-        android:layout_marginTop="24dp" />
-
-</RelativeLayout>
+    tools:context=".AuthActivity"
+    >
+</androidx.constraintlayout.widget.ConstraintLayout>
