@@ -71,4 +71,10 @@
     <string name="boardUpdatedSuccessfully">Board updated successfully</string>
     <string name="errorUpdatingBoard">Error updating the board</string>
     <string name="noVictories">There are no victories registered in</string>
+    <string name="sign_in_cancelled">Sign In Cancelled</string>
+    <string name="no_internet_connection">No Internet Connection</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="signIn">SignIn</string>
+    <string name="providers_header">Auth Providers</string>
+    <string name="account_disabled">Account Disabled</string>
 </resources>
