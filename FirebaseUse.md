@@ -875,3 +875,8 @@ Intent signInIntent =
 ### Twitter
 
 Twitter permissions can only be configured through [Twitter's developer console](https://apps.twitter.com/).
+
+### Quick Notes
+
+For configuring Google Auth you will need to extract from the ./gradlew signingReport the SHA1 key and add it to the Firebase Console.
+
