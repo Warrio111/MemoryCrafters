@@ -1,96 +1,102 @@
 package com.example.memorycrafters.models;
 
+import static android.content.ContentValues.TAG;
+
+import android.util.Log;
+
+import com.google.gson.JsonObject;
+
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.moshi.MoshiConverterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FirestoreDAOImpl implements FirestoreDAO {
-    private static final String BASE_URL = "tu_url_base_aqui/";
+    private static final String BASE_URL = "https://firestore.googleapis.com/v1/projects/memorycrafters-dda67/databases/(default)/documents/";
     private final FirestoreDAO firestoreAPI;
 
     public FirestoreDAOImpl() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .addConverterFactory(MoshiConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         firestoreAPI = retrofit.create(FirestoreDAO.class);
     }
 
+
     @Override
-    public Call<Moneda> getCoinById(int id) {
-        return firestoreAPI.getCoinById(id);
+    public Call<JsonObject> getUsers() {
+        return firestoreAPI.getUsers();
     }
 
     @Override
-    public Call<List<User>> getUsers() {
-        return null;
+    public Call<JsonObject> getUserByDocumentId(String name) {
+        return firestoreAPI.getUserByDocumentId(name);
     }
 
     @Override
-    public Call<User> getUserByUUID(String uuid) {
+    public Call<JsonObject> getUserByUUID(String uuid) {
         return firestoreAPI.getUserByUUID(uuid);
     }
 
     @Override
-    public Call<User> getUserByEmail(String email) {
-        return null;
+    public Call<JsonObject> getUserByEmail(String email) {
+        return firestoreAPI.getUserByEmail(email);
     }
 
     @Override
-    public Call<List<Partida>> getPartidas() {
-        return null;
+    public Call<JsonObject> getPartidas() {
+        return firestoreAPI.getPartidas();
     }
 
     @Override
-    public Call<List<Moneda>> getMonedasByPartidaId(int id) {
-        return null;
+    public Call<JsonObject> getPartidaByDocumentId(String name) {
+        return firestoreAPI.getPartidaByDocumentId(name);
+    }
+
+
+    @Override
+    public Call<JsonObject> getUserByPartidaId(int id) {
+        return firestoreAPI.getUserByPartidaId(id);
     }
 
     @Override
-    public Call<User> getUserByPartidaId(int id) {
-        return null;
+    public Call<JsonObject> createPartida(Partida partida) {
+        return firestoreAPI.createPartida(partida);
     }
 
     @Override
-    public Call<Partida> createPartida(Partida partida) {
-        return null;
+    public Call<JsonObject> createMoneda(int id, Moneda moneda) {
+        return firestoreAPI.createMoneda(id, moneda);
     }
 
     @Override
-    public Call<Moneda> createMoneda(int id, Moneda moneda) {
-        return null;
+    public Call<JsonObject> createUser(int id, User user) {
+        return firestoreAPI.createUser(id, user);
     }
 
     @Override
-    public Call<User> createUser(int id, User user) {
-        return null;
+    public Call<JsonObject> updateMoneda(int id, Moneda moneda) {
+        return firestoreAPI.updateMoneda(id, moneda);
     }
 
     @Override
-    public Call<Moneda> updateMoneda(int id, Moneda moneda) {
-        return null;
+    public Call<JsonObject> updatePartida(int id, Partida partida) {
+        return firestoreAPI.updatePartida(id, partida);
+    }
+
+
+    @Override
+    public Call<JsonObject> getMonedas() {
+        return firestoreAPI.getMonedas();
     }
 
     @Override
-    public Call<Partida> updatePartida(int id, Partida partida) {
-        return null;
-    }
-
-    @Override
-    public Call<List<User>> getTop10Players() {
-        return firestoreAPI.getTop10Players();
-    }
-
-    @Override
-    public Call<Partida> getPartidaById(int id) {
-        return null;
-    }
-
-    @Override
-    public Call<List<Moneda>> getMonedas() {
-        return null;
+    public Call<JsonObject> getCoinByDocumentId(String name) {
+        return firestoreAPI.getCoinByDocumentId(name);
     }
 }

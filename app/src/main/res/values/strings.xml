@@ -78,5 +78,6 @@
     <string name="providers_google" translatable="false">Google</string>
     <string name="providers_email" translatable="false">Email</string>
     <string name="account_disabled">Account Disabled</string>
+    <string name="ranking" translatable="false">Ranking</string>
 
 </resources>

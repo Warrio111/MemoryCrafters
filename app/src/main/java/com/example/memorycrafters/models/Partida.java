@@ -1,25 +1,39 @@
 package com.example.memorycrafters.models;
-import com.squareup.moshi.Json;
-import com.squareup.moshi.JsonClass;
 
-@JsonClass(generateAdapter = true)
+
 public class Partida {
-    @Json(name = "id")
+
     private int id;
 
-    @Json(name = "fecha")
+
     private String fecha;
 
-    @Json(name = "idMonedas")
-    private Moneda idMonedas;
 
-    @Json(name = "idUsuario")
+    private Moneda idMoneda; // Cambiar el tipo de int a Moneda
+
+
     private User idUsuario;
 
-    public Partida(int id, String fecha, Moneda idMonedas, User idUsuario) {
+    public Partida(int id, String fecha, Moneda idMoneda, User idUsuario) {
         this.id = id;
         this.fecha = fecha;
-        this.idMonedas = idMonedas;
+        this.idMoneda = idMoneda;
         this.idUsuario = idUsuario;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getFecha() {
+        return fecha;
+    }
+
+    public User getIdUser() {
+        return this.idUsuario;
+    }
+
+    public Moneda getIdMoneda() {
+        return this.idMoneda;
     }
 }

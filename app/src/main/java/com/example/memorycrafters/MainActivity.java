@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_score) {
             showScore();
             return true;
+        } else if (id == R.id.action_ranking) {
+            showRanking();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -105,6 +108,11 @@ public class MainActivity extends AppCompatActivity {
     }
     private void showScore(){
         Intent i = new Intent(this, Puntuaciones.class);
+        startActivity(i);
+    }
+
+    private void showRanking(){
+        Intent i = new Intent(this, RankingActivity.class);
         startActivity(i);
     }
 
