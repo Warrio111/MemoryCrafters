@@ -77,4 +77,6 @@
     <string name="signIn">Registrarse</string>
     <string name="providers_header">Proveedores</string>
     <string name="account_disabled">Cuenta Deshabilitada</string>
+    <string name="resolutionTime">Tiempo de Resolucion</string>
+    <string name="prize">Premio</string>
 </resources>

@@ -79,5 +79,8 @@
     <string name="providers_email" translatable="false">Email</string>
     <string name="account_disabled">Account Disabled</string>
     <string name="ranking" translatable="false">Ranking</string>
+    <string name="resolutionTime">Resolution Time</string>
+    <string name="uuid" translatable="false">UUID</string>
+    <string name="prize">Prize</string>
 
 </resources>

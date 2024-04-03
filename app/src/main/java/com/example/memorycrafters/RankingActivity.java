@@ -1,21 +1,36 @@
 package com.example.memorycrafters;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.example.memorycrafters.models.FirestoreDAOImpl;
 import com.example.memorycrafters.models.Moneda;
 import com.example.memorycrafters.models.Partida;
 import com.example.memorycrafters.models.User;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,7 +67,9 @@ public class RankingActivity extends AppCompatActivity {
         //Obtener todas las partidas
         getPartidas();
     }
-
+    private String getNullAsEmptyString(JsonElement jsonElement) {
+        return jsonElement.isJsonNull() ? "" : jsonElement.getAsString();
+    }
     private void getPartidas() {
         firestoreDAOImpl.getPartidas().enqueue(new Callback<JsonObject>() {
             @Override
@@ -61,13 +78,21 @@ public class RankingActivity extends AppCompatActivity {
                     JsonObject body = response.body();
                     JsonArray documents = body.getAsJsonArray("documents");
                     List<Partida> partidas = new ArrayList<>();
+                    if (documents == null) {
+                        return;
+                    }
                     for (JsonElement documentElement : documents) {
                         JsonObject document = documentElement.getAsJsonObject();
                         String name = document.getAsJsonPrimitive("name").getAsString();
 
                         JsonObject fields = document.getAsJsonObject("fields");
                         int id = fields.getAsJsonObject("id").getAsJsonPrimitive("integerValue").getAsInt();
-                        String fecha = fields.getAsJsonObject("fecha").getAsJsonPrimitive("stringValue").getAsString();
+                        String fechaInicio = fields.getAsJsonObject("fechaInicio").getAsJsonPrimitive("stringValue").getAsString();
+                        String fechaFin = null;
+                        JsonElement fechaFinElement = fields.getAsJsonObject("fechaFin").get("stringValue");
+                        if (fechaFinElement != null && fechaFinElement.isJsonPrimitive()) {
+                            fechaFin = fechaFinElement.getAsString();
+                        }
                         String idMoneda = fields.getAsJsonObject("idMonedas").getAsJsonPrimitive("stringValue").getAsString();
 
                         String[] partsMoneda = idMoneda.split("/");
@@ -79,7 +104,7 @@ public class RankingActivity extends AppCompatActivity {
 
                         User user = getUserFromDocumentName(idDocumentUsuario);
 
-                        Partida partida = new Partida(id, fecha, moneda, user);
+                        Partida partida = new Partida(id, fechaInicio, fechaFin, moneda, user);
                         partidas.add(partida);
                     }
                     displayPartidas(partidas);
@@ -198,11 +223,14 @@ public class RankingActivity extends AppCompatActivity {
         headerRanking.setText(R.string.ranking);
         headerRow.addView(headerRanking);
         TextView headerEmail = new TextView(this);
-        headerEmail.setText(R.string.providers_email);
+        headerEmail.setText(R.string.uuid);
         headerRow.addView(headerEmail);
         TextView headerCantidadMonedas = new TextView(this);
         headerCantidadMonedas.setText(R.string.quantityOfcurrency);
         headerRow.addView(headerCantidadMonedas);
+        TextView headerPremio = new TextView(this);
+        headerPremio.setText(R.string.prize);
+        headerRow.addView(headerPremio);
         tableLayout.addView(headerRow);
         int i = 1;
         for (String userId : topPlayers.keySet()) {
@@ -221,10 +249,50 @@ public class RankingActivity extends AppCompatActivity {
             cantidadMonedasTextView.setText(String.valueOf(coins));
             row.addView(cantidadMonedasTextView);
 
+            ImageView premioImageView = new ImageView(this);
+            premioImageView.setLayoutParams(new TableRow.LayoutParams(20, 90));
+            premioImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Drawable premioDrawable = ContextCompat.getDrawable(this, R.drawable.trophy);
+            premioImageView.setImageDrawable(premioDrawable);
+            isPrize(userId, hasPrize -> {
+                if (hasPrize) {
+                    // Si tiene premio, establecer la imagen de premio
+                    premioImageView.setVisibility(View.VISIBLE);
+                } else {
+                    // Si no tiene premio, ocultar la imagen de premio
+                    premioImageView.setVisibility(View.GONE);
+                }
+            });
+            row.addView(premioImageView);
+
             // Agregar la fila al TableLayout
             tableLayout.addView(row);
             i++;
         }
+    }
+
+    private void isPrize(String uuid, PrizeCheckListener listener) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users")
+                .whereEqualTo("uuid", uuid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    boolean premio = false;
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            if (document.exists()) {
+                                premio = document.getBoolean("premio");
+                                break; // Si encuentras el documento, no es necesario seguir iterando
+                            }
+                        }
+                    }
+                    listener.onPrizeChecked(premio);
+                });
+    }
+
+    // Interfaz de devolución de llamada para notificar si hay premio o no
+    interface PrizeCheckListener {
+        void onPrizeChecked(boolean hasPrize);
     }
 
     private HashMap<String, Integer> getTopPlayers(HashMap<String, Integer> userCoinMap) {

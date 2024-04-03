@@ -203,6 +203,8 @@ public class Juego extends AppCompatActivity {
                 databaseHelper.updateCardVisibility(numeroPrimero,1);
 
                 if(aciertos == imagenes.length){
+                    databaseHelper.finalizarPartida();
+                    finalizarPartida();
                     String title = getResources().getString(R.string.youWin);
                     String message = getResources().getString(R.string.congratulationsMessage);
                     mNotificationHelper.showVictoryNotification(title, message);
@@ -290,7 +292,7 @@ public class Juego extends AppCompatActivity {
             // First of all create a new document in the collection monedas
             Moneda moneda = new Moneda(databaseHelper.obtenerUltimaMonedaId(), 0);
             User user = new User(userEmail,userUUID);
-            Partida partida = new Partida(databaseHelper.obtenerUltimaPartidaId(),obtenerFechaActual(),null,null);
+            Partida partida = new Partida(databaseHelper.obtenerUltimaPartidaId(),obtenerFechaActual(),null,null,null);
             db.collection("monedas")
                     .add(moneda)
                     .addOnSuccessListener(documentReference -> {
@@ -307,6 +309,9 @@ public class Juego extends AppCompatActivity {
                                                         .document(documentReference2.getId())
                                                         .update("idMonedas", documentReference.getPath(), "idUsers", documentReference1.getPath());
                                             });
+                                    db.collection("users")
+                                            .document(documentReference1.getId())
+                                            .update("premio", false);
                                 });
                     });
         }
@@ -348,6 +353,72 @@ public class Juego extends AppCompatActivity {
                 });
     }
 
+    private void finalizarPartida()
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        int ultimaPartidaID = databaseHelper.obtenerUltimaPartidaId();
+        String fichaFinal = obtenerFechaActual();
+        db.collection("partidas")
+                .whereEqualTo("id", ultimaPartidaID)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Actualizar el campo "fechaFin" del documento encontrado
+                            document.getReference().update("urlPremio", "https://cdn-icons-png.flaticon.com/512/6303/6303576.png", "fechaFin", fichaFinal)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // La actualización se realizó con éxito
+                                        String successMessage = "Partida Fecha Fin Actualizada con éxito";
+                                        Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Ocurrió un error al intentar actualizar el documento
+                                        String errorMessage = "Partida Fecha Fin No Actualizada";
+                                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                                        e.printStackTrace();
+                                    });
+                        }
+                    } else {
+                        // Ocurrió un error al intentar buscar el documento
+                        String errorMessage = "Ocurrió un error al intentar buscar el documento";
+                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                        Exception e = task.getException();
+                        if (e != null) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        db.collection("users")
+                .whereEqualTo("uuid", FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Actualizar el campo "premio" del documento encontrado
+                            document.getReference().update("premio", true)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // La actualización se realizó con éxito
+                                        String successMessage = "Usuario Premio Actualizado con éxito";
+                                        Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Ocurrió un error al intentar actualizar el documento
+                                        String errorMessage = "Usuario Premio No Actualizado";
+                                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                                        e.printStackTrace();
+                                    });
+                        }
+                    } else {
+                        // Ocurrió un error al intentar buscar el documento
+                        String errorMessage = "Ocurrió un error al intentar buscar el documento";
+                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                        Exception e = task.getException();
+                        if (e != null) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
 
     public String obtenerFechaActual() {
         // Obtener la fecha y hora actual

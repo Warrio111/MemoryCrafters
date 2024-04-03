@@ -77,4 +77,6 @@
     <string name="signIn">SignIn</string>
     <string name="providers_header">Auth Providers</string>
     <string name="account_disabled">Account Disabled</string>
+    <string name="resolutionTime">Resolution Time</string>
+    <string name="prize">Prize</string>
 </resources>
