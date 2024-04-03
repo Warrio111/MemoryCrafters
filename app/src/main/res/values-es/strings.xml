@@ -71,4 +71,12 @@
     <string name="boardUpdatedSuccessfully">Tablero actualizado correctamente</string>
     <string name="errorUpdatingBoard">Error al actualizar el Tablero</string>
     <string name="noVictories">No hay victorias registradas para el</string>
+    <string name="sign_in_cancelled">Registro Cancelado</string>
+    <string name="no_internet_connection">No hay Conexión con Internet</string>
+    <string name="unknown_error">Error desconocido</string>
+    <string name="signIn">Registrarse</string>
+    <string name="providers_header">Proveedores</string>
+    <string name="account_disabled">Cuenta Deshabilitada</string>
+    <string name="resolutionTime">Tiempo de Resolucion</string>
+    <string name="prize">Premio</string>
 </resources>

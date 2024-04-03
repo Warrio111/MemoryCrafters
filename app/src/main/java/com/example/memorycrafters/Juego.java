@@ -1,45 +1,47 @@
 package com.example.memorycrafters;
 
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.Menu;
-import android.view.MenuItem;
-import androidx.appcompat.app.ActionBar;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.memorycrafters.models.Moneda;
+import com.example.memorycrafters.models.Partida;
+import com.example.memorycrafters.models.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import java.util.Locale;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 public class Juego extends AppCompatActivity {
 
     // Variable de permiso necesaria para las capturas de pantalla
     private static final int REQUEST_PERMISSION_STORAGE = 100;
-
     // variables para los componentes de la vista
     ImageButton imb00, imb01, imb02, imb03, imb04, imb05, imb06, imb07, imb08, imb09, imb10, imb11, imb12, imb13, imb14, imb15;
     ImageButton[] tablero = new ImageButton[16];
@@ -137,7 +139,7 @@ public class Juego extends AppCompatActivity {
         botonSalir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
-            {
+            {   updatearMonedas(puntuacion);
                 //databaseHelper.registrarPartidaYMonedas(puntuacion);
                 //ArrayList<String> partidas = databaseHelper.obtenerPartidas();
                 actualizarMonedasAsync(puntuacion);
@@ -199,7 +201,10 @@ public class Juego extends AppCompatActivity {
                 textoPuntuacion.setText("" + puntuacion);
                 //actualizarTableroAsync(numeroPrimero);
                 databaseHelper.updateCardVisibility(numeroPrimero,1);
+
                 if(aciertos == imagenes.length){
+                    databaseHelper.finalizarPartida();
+                    finalizarPartida();
                     String title = getResources().getString(R.string.youWin);
                     String message = getResources().getString(R.string.congratulationsMessage);
                     mNotificationHelper.showVictoryNotification(title, message);
@@ -275,6 +280,153 @@ public class Juego extends AppCompatActivity {
                 })
                 .subscribe(); // Suscribirse
     }
+    private void createPartida() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+            String userUUID = currentUser.getUid();
+            String userDisplayName = currentUser.getDisplayName();
+
+            databaseHelper = DatabaseHelper.getInstance(this);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            // First of all create a new document in the collection monedas
+            Moneda moneda = new Moneda(databaseHelper.obtenerUltimaMonedaId(), 0);
+            User user = new User(userEmail,userUUID);
+            Partida partida = new Partida(databaseHelper.obtenerUltimaPartidaId(),obtenerFechaActual(),null,null,null);
+            db.collection("monedas")
+                    .add(moneda)
+                    .addOnSuccessListener(documentReference -> {
+                        // Then create a new document in the collection users
+                        db.collection("users")
+                                .add(user)
+                                .addOnSuccessListener(documentReference1 -> {
+                                    // Finally create a new document in the collection partidas
+                                    db.collection("partidas")
+                                            .add(partida)
+                                            .addOnSuccessListener(documentReference2 -> {
+                                                // Update the partida with the id of the moneda and the user
+                                                db.collection("partidas")
+                                                        .document(documentReference2.getId())
+                                                        .update("idMonedas", documentReference.getPath(), "idUsers", documentReference1.getPath());
+                                            });
+                                    db.collection("users")
+                                            .document(documentReference1.getId())
+                                            .update("premio", false);
+                                });
+                    });
+        }
+    }
+
+    private void updatearMonedas(int cantidadMonedas) {
+        // Actualizar las monedas en la base de datos
+        int monedaIdSqlite = databaseHelper.obtenerUltimaMonedaId();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("monedas")
+                .whereEqualTo("id", monedaIdSqlite)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Actualizar el campo "cantidad" del documento encontrado
+                            document.getReference().update("cantidadMonedas", cantidadMonedas)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // La actualización se realizó con éxito
+                                        String successMessage = getResources().getString(R.string.succesfullUpdatingCoins);
+                                        Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Ocurrió un error al intentar actualizar el documento
+                                        String errorMessage = getResources().getString(R.string.errorUpdatingCoins);
+                                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                                        e.printStackTrace();
+                                    });
+                        }
+                    } else {
+                        // Ocurrió un error al intentar buscar el documento
+                        String errorMessage = getResources().getString(R.string.errorUpdatingCoins);
+                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                        Exception e = task.getException();
+                        if (e != null) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
+
+    private void finalizarPartida()
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        int ultimaPartidaID = databaseHelper.obtenerUltimaPartidaId();
+        String fichaFinal = obtenerFechaActual();
+        db.collection("partidas")
+                .whereEqualTo("id", ultimaPartidaID)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Actualizar el campo "fechaFin" del documento encontrado
+                            document.getReference().update("urlPremio", "https://cdn-icons-png.flaticon.com/512/6303/6303576.png", "fechaFin", fichaFinal)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // La actualización se realizó con éxito
+                                        String successMessage = "Partida Fecha Fin Actualizada con éxito";
+                                        Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Ocurrió un error al intentar actualizar el documento
+                                        String errorMessage = "Partida Fecha Fin No Actualizada";
+                                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                                        e.printStackTrace();
+                                    });
+                        }
+                    } else {
+                        // Ocurrió un error al intentar buscar el documento
+                        String errorMessage = "Ocurrió un error al intentar buscar el documento";
+                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                        Exception e = task.getException();
+                        if (e != null) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        db.collection("users")
+                .whereEqualTo("uuid", FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Actualizar el campo "premio" del documento encontrado
+                            document.getReference().update("premio", true)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // La actualización se realizó con éxito
+                                        String successMessage = "Usuario Premio Actualizado con éxito";
+                                        Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Ocurrió un error al intentar actualizar el documento
+                                        String errorMessage = "Usuario Premio No Actualizado";
+                                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                                        e.printStackTrace();
+                                    });
+                        }
+                    } else {
+                        // Ocurrió un error al intentar buscar el documento
+                        String errorMessage = "Ocurrió un error al intentar buscar el documento";
+                        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                        Exception e = task.getException();
+                        if (e != null) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
+
+    public String obtenerFechaActual() {
+        // Obtener la fecha y hora actual
+        Calendar calendar = Calendar.getInstance();
+        // Formatear la fecha y hora actual como una cadena de texto
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        return dateFormat.format(calendar.getTime());
+    }
 
     private void init(){
         cargarTablero();
@@ -283,6 +435,7 @@ public class Juego extends AppCompatActivity {
         cargarImagenes();
         databaseHelper = DatabaseHelper.getInstance(this);
         databaseHelper.inicializarPartida(imagenes.length);
+        createPartida();
         arrayDesordenado = barajar(imagenes.length);
         // Este proceso posiciona las imagenes en el tablero
         for(int i=0; i<tablero.length; i++){

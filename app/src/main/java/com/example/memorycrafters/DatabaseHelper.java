@@ -26,14 +26,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Columnas de la tabla "partidas"
     private static final String COLUMN_ID = "id";
-    private static final String COLUMN_FECHA = "fecha";
+    private static final String COLUMN_FECHA_INICIO = "fechaInicio";
+    private static final String COLUMN_FECHA_FIN = "fechaFin";
 
     // Columnas de la tabla "monedas"
     private static final String COLUMN_MONEDAS_ID = "monedas_id";
     private static final String COLUMN_CANTIDAD_MONEDAS = "cantidad";
     private static final String SQL_CREATE_PARTIDAS_TABLE = "CREATE TABLE " + TABLE_PARTIDAS + "("
             + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + COLUMN_FECHA + " TEXT,"
+            + COLUMN_FECHA_INICIO + " TEXT,"
+            + COLUMN_FECHA_FIN + " TEXT,"
             + COLUMN_MONEDAS_ID + " INTEGER," // Columna de la clave externa
             + "FOREIGN KEY (" + COLUMN_MONEDAS_ID + ") REFERENCES " + TABLE_MONEDAS + "(" + COLUMN_MONEDAS_ID + ")" // Restricción de clave externa
             + ")";
@@ -218,11 +220,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public void finalizarPartida() {
+        int ultimaPartidaId = obtenerUltimaPartidaId();
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_FECHA_FIN, obtenerFechaActual());
+        try {
+            // Actualizar la fecha de fin de la partida en la tabla "partidas"
+            db.update(TABLE_PARTIDAS, values, COLUMN_ID + " = " + ultimaPartidaId, null);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+    }
+
 
     public void registrarPartida(int monedasId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_FECHA, obtenerFechaActual());
+        values.put(COLUMN_FECHA_INICIO, obtenerFechaActual());
+        values.put(COLUMN_FECHA_FIN, "");
         values.put(COLUMN_MONEDAS_ID, monedasId); // Asignar el ID de las monedas a la partida
         try {
             // Insertar la nueva partida en la tabla "partidas"
@@ -256,7 +274,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public ArrayList<String> obtenerPartidas() {
         ArrayList<String> partidas = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT p." + COLUMN_ID + ", p." + COLUMN_FECHA + ", m." + COLUMN_CANTIDAD_MONEDAS +
+        Cursor cursor = db.rawQuery("SELECT p." + COLUMN_ID + ", p." + COLUMN_FECHA_INICIO + ", p." + COLUMN_FECHA_FIN + ", m." + COLUMN_CANTIDAD_MONEDAS +
                 " FROM " + TABLE_PARTIDAS + " p LEFT JOIN " + TABLE_MONEDAS + " m" +
                 " ON p." + COLUMN_MONEDAS_ID + " = m." + COLUMN_MONEDAS_ID, null);
         if (cursor.moveToFirst()) {
@@ -264,11 +282,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // Obtener el ID de la partida
                 @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
                 // Obtener la fecha de la partida
-                @SuppressLint("Range") String fecha = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA));
+                @SuppressLint("Range") String fechaInicio = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_INICIO));
+                @SuppressLint("Range") String fechaFin = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_FIN));
                 // Obtener la cantidad de monedas asociadas a la partida
                 @SuppressLint("Range") int cantidadMonedas = cursor.getInt(cursor.getColumnIndex(COLUMN_CANTIDAD_MONEDAS));
                 // Agregar la información de la partida a la lista
-                partidas.add("Partida #" + id + " - Fecha: " + fecha + " - Cantidad de monedas: " + cantidadMonedas);
+                partidas.add("Partida #" + id + " - FechaInicio: " + fechaInicio + " - FechaFin: " + fechaFin +" - Cantidad de monedas: " + cantidadMonedas);
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -291,21 +310,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return cantidadMonedas;
     }
+    @SuppressLint("Range")
+    public String obtenerFechaFinPartida(String fechaInicio) {
+        String fechaFin = "";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_PARTIDAS, new String[]{COLUMN_FECHA_FIN}, COLUMN_FECHA_INICIO + "=?",
+                new String[]{fechaInicio}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            fechaFin = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_FIN));
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return fechaFin;
+    }
 
     public HashMap<String, Integer> obtenerTodasVictorias() {
         HashMap<String, Integer> victorias = new HashMap<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_PARTIDAS, new String[]{COLUMN_FECHA, COLUMN_MONEDAS_ID}, null, null, null, null, null);
+        Cursor cursor = db.query(TABLE_PARTIDAS, new String[]{COLUMN_FECHA_INICIO, COLUMN_FECHA_FIN, COLUMN_MONEDAS_ID}, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 // Obtener la fecha de la partida
-                @SuppressLint("Range") String fecha = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA));
+                @SuppressLint("Range") String fechaInicio = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_INICIO));
+                // Obtener la fecha de fin de la partida
+                @SuppressLint("Range") String fechaFin = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_FIN));
                 // Obtener el ID de las monedas asociadas
                 @SuppressLint("Range") int monedasId = cursor.getInt(cursor.getColumnIndex(COLUMN_MONEDAS_ID));
                 // Obtener la cantidad de monedas asociadas
                 int cantidadMonedas = obtenerCantidadMonedas(monedasId);
                 // Agregar la fecha y la cantidad de monedas al HashMap
-                victorias.put(fecha, cantidadMonedas);
+                if(fechaFin.equals("")){
+                    // The continue statement terminates execution of the statements in the
+                    // current iteration of the current or labeled loop, and continues execution of the loop
+                    // with the next iteration.
+                    continue;
+                }
+                victorias.put(fechaInicio, cantidadMonedas);
             } while (cursor.moveToNext());
         }
         cursor.close();

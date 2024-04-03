@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "414034310010",
+    "project_id": "memorycrafters-dda67",
+    "storage_bucket": "memorycrafters-dda67.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414034310010:android:d4b82185b9b95eeeff5cc3",
+        "android_client_info": {
+          "package_name": "com.example.memorycrafters"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "414034310010-57ldhrrojnhgv997h8im1plkbv2v4qkr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.memorycrafters",
+            "certificate_hash": "506aa54d3373694d3dc8fd2ad4083b111b7e3fde"
+          }
+        },
+        {
+          "client_id": "414034310010-aqm2dgpaabvquv0r66ih7rdoc0gcpv3l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCdVx0FFStNZLszttsw_ijGoEaZX8xR20"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "414034310010-aqm2dgpaabvquv0r66ih7rdoc0gcpv3l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
