@@ -68,11 +68,11 @@ public class RankingActivity extends AppCompatActivity {
                         JsonObject fields = document.getAsJsonObject("fields");
                         int id = fields.getAsJsonObject("id").getAsJsonPrimitive("integerValue").getAsInt();
                         String fecha = fields.getAsJsonObject("fecha").getAsJsonPrimitive("stringValue").getAsString();
-                        String idMoneda = fields.getAsJsonObject("idMonedas").getAsJsonPrimitive("referenceValue").getAsString();
+                        String idMoneda = fields.getAsJsonObject("idMonedas").getAsJsonPrimitive("stringValue").getAsString();
 
                         String[] partsMoneda = idMoneda.split("/");
                         String idDocumentMoneda = partsMoneda[partsMoneda.length - 1];
-                        String idUsuario = fields.getAsJsonObject("idUsers").getAsJsonPrimitive("referenceValue").getAsString();
+                        String idUsuario = fields.getAsJsonObject("idUsers").getAsJsonPrimitive("stringValue").getAsString();
                         String[] partsUsuario= idUsuario.split("/");
                         String idDocumentUsuario = partsUsuario[partsUsuario.length - 1];
                         Moneda moneda = getMonedaFromDocumentName(idDocumentMoneda);
